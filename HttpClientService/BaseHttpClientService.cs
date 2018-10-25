@@ -1,7 +1,9 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace HttpClientService
 {
@@ -9,33 +11,74 @@ namespace HttpClientService
     {
         public HttpClient HttpClient { get; protected set; }
         public Uri BaseUri { get; protected set; }
-        public BaseHttpClientService(Uri uri, HttpClientHandler handler = null)
+        public BaseHttpClientService() : this(null, null) { }
+        public BaseHttpClientService(IEnumerable<DelegatingHandler> handler = null) : this(null, handler) { }
+
+        public BaseHttpClientService(Uri uri = null, IEnumerable<DelegatingHandler> handler = null)
         {
             BaseUri = uri;
             if (handler == null)
             {
-                HttpClient = new HttpClient();
+                HttpClient = HttpClientFactory();
             }
             else
             {
-                HttpClient = new HttpClient(handler);
+                HttpClient = HttpClientFactory(handler);
             }
         }
-
-        public virtual T ToObject<T>(HttpResponseMessage response)
+        public virtual HttpClient HttpClientFactory(IEnumerable<DelegatingHandler> httpClientHandlers = null)
         {
-            var jsonString = response.Content.ReadAsStringAsync().Result;
+            HttpClient httpClient = null;
+            if (httpClientHandlers == null)
+            {
+                httpClient = new HttpClient();
+            }
+            else
+            {
+                IEnumerator<DelegatingHandler> enumeratorDelegatingHandler = httpClientHandlers.GetEnumerator();
+                DelegatingHandler previousDelegatingHandler = null;
+                DelegatingHandler currentDelegatingHandler = null;
+                do
+                {
+                    enumeratorDelegatingHandler.MoveNext();
+                    currentDelegatingHandler = enumeratorDelegatingHandler.Current;
+                    //set innerhandler of previous handler
+                    if (previousDelegatingHandler != null && currentDelegatingHandler != null)
+                    {
+                        if (currentDelegatingHandler.InnerHandler == null)
+                        {
+                            currentDelegatingHandler.InnerHandler = new HttpClientHandler();
+                        }
+                        previousDelegatingHandler.InnerHandler = currentDelegatingHandler;
+                        if (previousDelegatingHandler.InnerHandler == null)
+                        {
+                            previousDelegatingHandler.InnerHandler = new HttpClientHandler();
+                        }
+                    }
+                    //set previous handler
+                    if (currentDelegatingHandler != null)
+                    {
+                        previousDelegatingHandler = currentDelegatingHandler;
+                    }
+                    //connect handler to httpclient
+                    if (httpClient == null)
+                    {
+                        httpClient = new HttpClient(currentDelegatingHandler, false);
+                    }
+                }
+                while (enumeratorDelegatingHandler.Current != null);
+            }
+            return httpClient;
+        }
 
-            var model = JsonConvert.DeserializeObject<T>(jsonString);
-
-            return model;
+        public virtual Task<T> ToObjectAsync<T>(HttpResponseMessage response)
+        {
+            return response.ToObjectAsync<T>();
         }
 
         public virtual HttpContent ToJson<T>(T model)
         {
-            String jsonString = JsonConvert.SerializeObject(model);
-            var content = new StringContent(jsonString, Encoding.UTF8, "text/plain");
-            return content;
+            return model.ToJson<T>();
         }
     }
 }

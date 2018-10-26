@@ -1,8 +1,6 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace HttpClientService
@@ -12,9 +10,9 @@ namespace HttpClientService
         public HttpClient HttpClient { get; protected set; }
         public Uri BaseUri { get; protected set; }
         public BaseHttpClientService() : this(null, null) { }
-        public BaseHttpClientService(IEnumerable<DelegatingHandler> handler = null) : this(null, handler) { }
+        public BaseHttpClientService(IEnumerable<System.Net.Http.DelegatingHandler> handler = null) : this(null, handler) { }
 
-        public BaseHttpClientService(Uri uri = null, IEnumerable<DelegatingHandler> handler = null)
+        public BaseHttpClientService(Uri uri = null, IEnumerable<System.Net.Http.DelegatingHandler> handler = null)
         {
             BaseUri = uri;
             if (handler == null)
@@ -26,7 +24,7 @@ namespace HttpClientService
                 HttpClient = HttpClientFactory(handler);
             }
         }
-        public virtual HttpClient HttpClientFactory(IEnumerable<DelegatingHandler> httpClientHandlers = null)
+        public virtual HttpClient HttpClientFactory(IEnumerable<System.Net.Http.DelegatingHandler> httpClientHandlers = null)
         {
             HttpClient httpClient = null;
             if (httpClientHandlers == null)
@@ -35,20 +33,20 @@ namespace HttpClientService
             }
             else
             {
-                IEnumerator<DelegatingHandler> enumeratorDelegatingHandler = httpClientHandlers.GetEnumerator();
-                DelegatingHandler previousDelegatingHandler = null;
-                DelegatingHandler currentDelegatingHandler = null;
+                IEnumerator<System.Net.Http.DelegatingHandler> enumeratorDelegatingHandler = httpClientHandlers.GetEnumerator();
+                System.Net.Http.DelegatingHandler previousDelegatingHandler = null;
+                System.Net.Http.DelegatingHandler currentDelegatingHandler = null;
                 do
                 {
                     enumeratorDelegatingHandler.MoveNext();
                     currentDelegatingHandler = enumeratorDelegatingHandler.Current;
+                    if (currentDelegatingHandler!= null && currentDelegatingHandler.InnerHandler == null)
+                    {
+                        currentDelegatingHandler.InnerHandler = new HttpClientHandler();
+                    }
                     //set innerhandler of previous handler
                     if (previousDelegatingHandler != null && currentDelegatingHandler != null)
                     {
-                        if (currentDelegatingHandler.InnerHandler == null)
-                        {
-                            currentDelegatingHandler.InnerHandler = new HttpClientHandler();
-                        }
                         previousDelegatingHandler.InnerHandler = currentDelegatingHandler;
                         if (previousDelegatingHandler.InnerHandler == null)
                         {

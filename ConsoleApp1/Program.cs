@@ -1,4 +1,5 @@
 ﻿using HttpClientService;
+using HttpClientService.DelegatingHandler;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -21,9 +22,13 @@ namespace ConsoleApp1
 
                     HttpResponseMessage message = await baseHttpClientService.HttpClient.GetAsync("http://google.de");
 
-                    dynamic bla = await (await baseHttpClientService.HttpClient.GetAsync("https://jsonplaceholder.typicode.com/todos/1")).ToObjectAsync<dynamic>();
-
                     Console.WriteLine(await message.Content.ReadAsStringAsync());
+                    Console.Clear();
+                    dynamic bla = await (await baseHttpClientService.HttpClient.GetAsync("https://jsonplaceholder.typicode.com/todos/1")).ToObjectAsync<dynamic>();
+                    Console.WriteLine(bla);
+                    Console.Clear();
+
+
                 }
                 catch (Exception e)
                 {

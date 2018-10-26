@@ -6,6 +6,7 @@
     <PackageProjectUrl>https://github.com/mfe-/HttpClientService</PackageProjectUrl>
     <RepositoryUrl>https://github.com/mfe-/HttpClientService</RepositoryUrl>
     <Authors>HttpClientService</Authors>
+    <PackageId>IHttpClientService</PackageId>
   </PropertyGroup>
 
   <ItemGroup>

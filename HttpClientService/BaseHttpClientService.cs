@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -10,10 +11,12 @@ namespace HttpClientService
         public HttpClient HttpClient { get; protected set; }
         public Uri BaseUri { get; protected set; }
         public BaseHttpClientService() : this(null, null) { }
-        public BaseHttpClientService(IEnumerable<System.Net.Http.DelegatingHandler> handler = null) : this(null, handler) { }
+        public BaseHttpClientService(IEnumerable<System.Net.Http.DelegatingHandler>?handler = null) : this(null, handler) { }
 
-        public BaseHttpClientService(Uri uri = null, IEnumerable<System.Net.Http.DelegatingHandler> handler = null)
+        public BaseHttpClientService(Uri? uri = null, IEnumerable<System.Net.Http.DelegatingHandler>?handler = null)
         {
+            if (uri == null) throw new ArgumentNullException("bad luck uri is required");
+            if (handler != null && !handler.Any()) handler = null;
             BaseUri = uri;
             if (handler == null)
             {
@@ -24,23 +27,23 @@ namespace HttpClientService
                 HttpClient = HttpClientFactory(handler);
             }
         }
-        public virtual HttpClient HttpClientFactory(IEnumerable<System.Net.Http.DelegatingHandler> httpClientHandlers = null)
+        public virtual HttpClient HttpClientFactory(IEnumerable<System.Net.Http.DelegatingHandler>?httpClientHandlers = null)
         {
-            HttpClient httpClient = null;
+            HttpClient? httpClient = null;
             if (httpClientHandlers == null)
             {
                 httpClient = new HttpClient();
             }
             else
             {
-                IEnumerator<System.Net.Http.DelegatingHandler> enumeratorDelegatingHandler = httpClientHandlers.GetEnumerator();
-                System.Net.Http.DelegatingHandler previousDelegatingHandler = null;
-                System.Net.Http.DelegatingHandler currentDelegatingHandler = null;
+                IEnumerator<System.Net.Http.DelegatingHandler>enumeratorDelegatingHandler = httpClientHandlers.GetEnumerator();
+                System.Net.Http.DelegatingHandler? previousDelegatingHandler = null;
+                System.Net.Http.DelegatingHandler? currentDelegatingHandler = null;
                 do
                 {
                     enumeratorDelegatingHandler.MoveNext();
                     currentDelegatingHandler = enumeratorDelegatingHandler.Current;
-                    if (currentDelegatingHandler!= null && currentDelegatingHandler.InnerHandler == null)
+                    if (currentDelegatingHandler != null && currentDelegatingHandler.InnerHandler == null)
                     {
                         currentDelegatingHandler.InnerHandler = new HttpClientHandler();
                     }
@@ -66,6 +69,10 @@ namespace HttpClientService
                 }
                 while (enumeratorDelegatingHandler.Current != null);
             }
+            if (BaseUri != null)
+            {
+                httpClient.BaseAddress = BaseUri;
+            }
             return httpClient;
         }
 
@@ -76,7 +83,7 @@ namespace HttpClientService
 
         public virtual HttpContent ToJson<T>(T model)
         {
-            return model.ToJson<T>();
+            return model.ToStringContentJson<T>();
         }
     }
 }

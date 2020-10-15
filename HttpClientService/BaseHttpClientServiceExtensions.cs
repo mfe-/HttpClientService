@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace HttpClientService
@@ -14,13 +14,17 @@ namespace HttpClientService
             {
                 if (response.Content != null)
                 {
+                    var options = new JsonSerializerOptions
+                    {
+                        AllowTrailingCommas = true
+                    };
                     var jsonString = await response.Content.ReadAsStringAsync();
                     jsonResultCallBack?.Invoke(jsonString);
-                    var model = JsonConvert.DeserializeObject<T>(jsonString);
+                    var model = JsonSerializer.Deserialize<T>(jsonString, options);
                     return model;
                 }
             }
-            catch (JsonReaderException e)
+            catch (JsonException e)
             {
                 jsonResultCallBack?.Invoke(e.ToString());
             }
@@ -30,7 +34,11 @@ namespace HttpClientService
         }
         public static HttpContent ToStringContentJson<T>(this T model)
         {
-            String jsonString = JsonConvert.SerializeObject(model);
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = false
+            };
+            String jsonString = JsonSerializer.Serialize(model, options);
             var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
             return content;
         }

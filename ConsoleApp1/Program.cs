@@ -28,20 +28,43 @@ namespace ConsoleApp1
             try
             {
                 BaseHttpClientService baseHttpClientService = new BaseHttpClientService(
-                    new Uri("http://google.de"),
-                    new List<DelegatingHandler>()
-                    {
-                        new ADelegatingHandler(),
-                        new BDelegatingHandler(),
-                        new CDelegatingHandler()
-                    }
+                    new Uri("http://google.de")
+                        , new List<DelegatingHandler>()
+                        {
+                            new ADelegatingHandler(),
+                            new BDelegatingHandler(),
+                            //new CDelegatingHandler()
+                        }
                 );
 
                 HttpResponseMessage message = await baseHttpClientService.HttpClient.GetAsync("http://google.de");
 
                 Console.WriteLine(await message.Content.ReadAsStringAsync());
                 Console.Clear();
-                dynamic bla = await (await baseHttpClientService.HttpClient.GetAsync("https://jsonplaceholder.typicode.com/todos/1")).ToObjectAsync<dynamic>();
+
+                var responseMessage = await baseHttpClientService.HttpClient.GetAsync("https://jsonplaceholder.typicode.com/users");
+
+                //[
+                //{
+                //                  "id": 1,
+                //  "name": "Leanne Graham",
+                //  "username": "Bret",
+                //  "email": "Sincere@april.biz",
+                //  "address": {
+                //                      "street": "Kulas Light",
+                //    "suite": "Apt. 556",
+                //    "city": "Gwenborough",
+                //    "zipcode": "92998-3874",
+                //    "geo": {
+                //                          "lat": "-37.3159",
+                //      "lng": "81.1496"
+                //    }
+                //                  },
+
+                var bla = await responseMessage.ToObjectAsync<dynamic>();
+
+
+                var x = bla[0].address.street;
                 Console.WriteLine(bla);
                 Console.Clear();
 

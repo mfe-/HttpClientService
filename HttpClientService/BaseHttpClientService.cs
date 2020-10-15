@@ -9,15 +9,17 @@ namespace HttpClientService
     public class BaseHttpClientService
     {
         public HttpClient HttpClient { get; protected set; }
-        public Uri BaseUri { get; protected set; }
+        public Uri? BaseUri { get; protected set; }
         public BaseHttpClientService() : this(null, null) { }
         public BaseHttpClientService(IEnumerable<System.Net.Http.DelegatingHandler>?handler = null) : this(null, handler) { }
 
         public BaseHttpClientService(Uri? uri = null, IEnumerable<System.Net.Http.DelegatingHandler>?handler = null)
         {
-            if (uri == null) throw new ArgumentNullException("bad luck uri is required");
             if (handler != null && !handler.Any()) handler = null;
-            BaseUri = uri;
+            if (uri != null)
+            {
+                BaseUri = uri;
+            }
             if (handler == null)
             {
                 HttpClient = HttpClientFactory();
